@@ -26,3 +26,12 @@ def fetch_customer_credit(company,customer):
         "credit":credit_limit,
         "outstanding" : outstanding
     }
+
+@frappe.whitelist()
+def run_auto_review():
+    frappe.enqueue(
+        "my_app.tasks.auto_review_feedback",
+        queue="long",
+        timeout=600
+    )
+    return "Auto-review job queued"

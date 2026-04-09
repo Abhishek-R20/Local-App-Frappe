@@ -148,23 +148,23 @@ app_license = "mit"
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"my_app.tasks.all"
-# 	],
-# 	"daily": [
-# 		"my_app.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"my_app.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"my_app.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"my_app.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	# "all": [
+	# 	"my_app.tasks.all"
+	# ],
+	"daily": [
+		"my_app.tasks.auto_review_feedback"
+	],
+	# "hourly": [
+	# 	"my_app.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"my_app.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"my_app.tasks.monthly"
+	# ],
+}
 
 # Testing
 # -------
