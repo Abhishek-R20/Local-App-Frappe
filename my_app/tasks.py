@@ -3,6 +3,7 @@ from frappe.utils import add_days,today
 
 def send_notifications(processed):
     try:
+        admin = frappe.get_single("Admin")
         admin_email = frappe.db.get_single_value("Admin", "admin_email") or "abhishekraut695@gmail.com"
         frappe.sendmail(
         recipients=[admin_email],
