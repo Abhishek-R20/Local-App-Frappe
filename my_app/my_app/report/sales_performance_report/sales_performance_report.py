@@ -9,12 +9,11 @@ def execute(filters=None):
 	columns, data = get_columns(), get_data(filters) or []
 
 	
-	summery = get_summery(data)
+	# summery = get_summery(data)
  
 	data = add_total_row(data)
 
-	return columns, data, None, None, summery
-
+	return columns, data
 
 def add_total_row(data):
 	total_amount = sum(row.get("total_amount", 0) for row in data)
@@ -36,31 +35,31 @@ def add_total_row(data):
 	return data
 
 
-def get_summery(data):
-	total_amount = sum(row.get("total_amount", 0) for row in data)
-	total_order = sum(row.get("total_orders",0) for row in data)
+# def get_summery(data):
+# 	total_amount = sum(row.get("total_amount", 0) for row in data)
+# 	total_order = sum(row.get("total_orders",0) for row in data)
 	
-	avg_order_value = 0 
-	if total_order :
-		avg_order_value = total_amount/total_order
+# 	avg_order_value = 0 
+# 	if total_order :
+# 		avg_order_value = total_amount/total_order
 
-	return [
-		{
-			"label":"Total Orders",
-			"value" : total_order,
-			"indicator" : "blue"
-		},
-		{
-			"label":"Total Amount",
-			"value" : total_amount,
-			"indicator" : "yellow"
-		},
-		{
-			"label":"Avg Order Value",
-			"value" : avg_order_value,
-			"indicator" : "red"
-		}
-	]
+# 	return [
+# 		{
+# 			"label":"Total Orders",
+# 			"value" : total_order,
+# 			"indicator" : "blue"
+# 		},
+# 		{
+# 			"label":"Total Amount",
+# 			"value" : total_amount,
+# 			"indicator" : "yellow"
+# 		},
+# 		{
+# 			"label":"Avg Order Value",
+# 			"value" : avg_order_value,
+# 			"indicator" : "red"
+# 		}
+# 	]
 
 def get_columns():
     return[
@@ -101,8 +100,8 @@ def get_data(filters):
 							GROUP BY customer,territory
                         """, filters, as_dict=True)
 
-	for row in data:
-		if row.get("total_amount") and row["total_amount"] > 100000:
-			row["color"] = "orange"
+	# for row in data:
+	# 	if row.get("total_amount") and row["total_amount"] > 100000:
+	# 		row["color"] = "orange"
 		
 	return data

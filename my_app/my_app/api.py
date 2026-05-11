@@ -1,4 +1,5 @@
 import frappe
+# from frappe.core.doctype.user.user import get_roles
 
 @frappe.whitelist()
 def fetch_customer_credit(company,customer):
@@ -35,3 +36,19 @@ def run_auto_review():
         timeout=600
     )
     return "Auto-review job queued"
+
+
+
+
+@frappe.whitelist()
+def get_custom_roles(*args, **kwargs):
+
+    user = kwargs.get("uid") or frappe.session.user
+
+    # SAFE API (no form_dict dependency)
+    core_roles = frappe.get_roles(user)
+    # frappe.errprint("Core ROLES ::::"+str(core_roles))
+
+    filtered_roles = [r for r in core_roles if r != "Custom Role"]
+
+    return filtered_roles
