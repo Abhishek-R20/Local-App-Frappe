@@ -254,4 +254,6 @@ fixtures = [
     "Custom Field",
     "Workflow",
     "Role" ,
+    "Server Script",
+    "Client Script"
 ]
