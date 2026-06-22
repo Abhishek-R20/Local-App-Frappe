@@ -1,0 +1,68 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Test PO",
+  "enabled": 1,
+  "modified": "2026-04-03 19:31:27.506508",
+  "module": null,
+  "name": "Fetch data to Create Test PR",
+  "script": "frappe.ui.form.on('Test PO', {\r\n    refresh(frm) {\r\n        if (frm.doc.docstatus === 1){\r\n            frm.add_custom_button(\"test Po\",function(){\r\n                frappe.call({\r\n                    method : \"test_script\",\r\n                    args :{\r\n                        doc_name : frm.doc.name\r\n                    },\r\n                    callback:function(r){\r\n                        console.log(r.message)\r\n                        if (r.message){\r\n                            let pr = frappe.model.get_new_doc(\"Test PR\")\r\n                            Object.assign(pr, r.message)\r\n                            \r\n                            pr.items=[]\r\n                            \r\n                            if (r.message.items){\r\n                                r.message.items.forEach(row =>{\r\n                                    let child = frappe.model.add_child(pr,\"Test PR Items\",\"items\")\r\n                                    Object.assign(child, row)\r\n                                })\r\n                            }\r\n                            \r\n                            frappe.set_route(\"Form\", pr.doctype,pr.name)\r\n                        }\r\n                    }\r\n                })\r\n            })\r\n        }\r\n        \r\n    },\r\n});",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer Feedback",
+  "enabled": 1,
+  "modified": "2026-04-06 10:53:20.353411",
+  "module": "My App",
+  "name": "Customer Feedback Client Script",
+  "script": "frappe.ui.form.on('Customer Feedback', {\n\trefresh(frm) {\n\t\tconst pending = (frm.doc.action_items || []).filter(row => !row.done).length;\n\t\tconsole.log(pending)\n// \t\tfrm.set_intro(`Pending Actions: ${pending_count}` , pending ? 'orange':'green');\n        frm.set_intro(`pending :: ${pending}`, pending ? 'orange':'green')\n\t\t\n\t},\n\t\n\tonload(frm){\n\t    if(!frm.doc.feedback_date){\n\t        frm.set_value(\"feedback_date\",frappe.datetime.get_today())\n\t    }\n\t},\n\t\n\trating(frm){\n\t    if(frm.doc.rating === '1' || frm.doc.rating === '2'){\n\t        frappe.msgprint({\n\t            \"title\":\"Low rating detected – please addd detailed feedback.\",\n\t            \"indicator\" : \"orange\",\n\t            \"message\":__(\"Low rating detected – please addd detailed feedback.\"),\n\t        })\n\t    }\n\t},\n\t\n\tvalidate(frm){\n\t    if(frm.doc.rating && (!frm.doc.feedback_text)){\n\t        frappe.throw(__(\"Feedback is necessary\"))\n\t    }\n\t},\n\t\n\tcustomer(frm){\n\t    if(frm.doc.customer){\n\t     frappe.db.get_value(\n\t            \"Customer\",\n\t            frm.doc.customer,\n\t            \"mobile_no\",\n\t            (r) => {\n\t                frm.set_df_property(\n\t                       \"customer\",\n\t                       \"description\",\n\t                       'Mobile:'+ (r.mobile_no || 'N/A')\n\t                    )\n\t            }\n\t         )   \n\t    }\n\t},\n\t\n\tbefore_submit(frm) {\n        const missing = frm.doc.action_items.filter(\n            row => !row.due_date\n        );\n        if (missing.length) {\n            frappe.throw('All action items must have a due date.');\n        }\n        },\n        action_items_add(frm) { updateTitle(frm); },\n        action_items_remove(frm) { updateTitle(frm); \n            \n    },\n    \n    custom_due_date(frm) {\n        (frm.doc.action_items || []).forEach(row => {\n            if (!row.due_date) {\n                // console.log(\"hii\")\n                frappe.model.set_value(row.doctype,row.name,\"due_date\",frm.doc.custom_due_date)\n            }\n        });\n    }\n})\n\n\nfrappe.ui.form.on('Feedback Action Item', {\n\trefresh(frm) {\n\t\t// your code here\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Sales Order",
+  "enabled": 1,
+  "modified": "2026-04-05 19:04:11.235861",
+  "module": null,
+  "name": "Sales Order Client Script",
+  "script": "frappe.ui.form.on('Sales Order', {\n\trefresh(frm) {\n\t\t// your code here\n\t},\n\tcustomer(frm){\n\t  if(!frm.doc.customer || !frm.doc.company){\n\t      return\n\t  }\n\t  else{\n\t      console.log(\"in call\")\n\t      frappe.call({\n\t          method:'my_app.my_app.api.fetch_customer_credit',\n\t          args:{\n\t              'company':frm.doc.company,\n\t              'customer':frm.doc.customer,\n\t          },\n\t          callback:function(r){\n\t              console.log(r.message)\n\t              \n\t              if(r.message){\n\t                  let credit = r.message.credit\n\t                  let outstanding = r.message.outstanding[0].outstanding\n\t                  frm.set_value(\"custom_customer_credit_limit\",credit)\n\t                  let available_credit = credit - outstanding\n\t                  frm.set_value(\"custom_available_credit\",available_credit)\n\t               //   frm.refresh_field(\"custom_customer_credit_limit\")\n\t               //   frm.refresh_field(\"custom_available_credit\")\n\t              }\n\t          }\n\t      })\n\t  }\n\t},\n\t\n\tcustom_customer_credit_limit(frm){\n\t    if(frm.doc.custom_customer_credit_limit > 0){\n\t        frm.get_field('custom_customer_credit_limit').$wrapper.css('background-color', '#ffcccc')\n\t    }\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Quick Order",
+  "enabled": 1,
+  "modified": "2026-05-11 12:48:54.422857",
+  "module": "My App",
+  "name": "Quick Order Script",
+  "script": "frappe.ui.form.on('Quick Order', {\n\trefresh(frm) {\n\t    frm.add_custom_button(\"Add SO Items\", function(){\n\t       // frappe.prompt([{....}], (r)=>{\n\t           \n\t       //})\n\t       \n\t        frappe.prompt([{\n\t            'fieldname': 'so',\n\t            'fieldtype': 'Link',\n\t            'label': 'Sales Order',\n\t            'reqd': 1,\n\t            'options':\"Sales Order\"\n\t            \n\t        }],(r)=>{\n\t            frappe.db.get_doc(\"Sales Order\",r.so).then((r)=>{\n\t                console.log(r)\n\t                r.items.forEach(item=>{\n\t                    let child = frm.add_child('quick_order_items')\n\t                    child.item_code = item.item_code\n\t                    child.item_name = item.item_code\n\t                    child.uom = item.uom\n\t                    child.rate = item.rate\n\t                    child.qty = item.qty\n\t                    child.amount = item.amount\n\t                })\n\t                frm.refresh_field('quick_order_items')\n\t               // frm.trigger(\"calculate_amount\")\n\t                \n\t            })\n\t        })\n\t        \n\t    })\n\t    \n\t\tfrm.trigger(\"calculate_amount\")\n\t},\n\t\n\tcalculate_amount(frm){\n\t    console.log(\"calculating\")\n\t  let sum = 0;\n\t  (frm.doc.quick_order_items ||[]).forEach(r =>{\n\t      sum= sum + r.amount\n\t  })\n\t  frm.set_value(\"toatal_amount\",sum)\n\n\t  \n\t},\n\t\n\tquick_order_items_remove(frm){\n\t    frm.trigger(\"calculate_amount\")\n\t},\n\tquick_order_items_add(frm){\n\t    frm.trigger(\"calculate_amount\")\n\t}\n})\n\nfrappe.ui.form.on('Quick Items', {\n\trefresh(frm) {\n\t\t// your code here\n\t},\n\titem_code(frm,cdt,cdn){\n\t  let row = locals[cdt][cdn]  \n\t  if (row.item_code){\n\t      frappe.db.get_value(\"Item\", row.item_code,fields=[\"item_name\",\"valuation_rate\",\"stock_uom\"]).then(r=>{\n\t          r=r.message\n\t          frappe.model.set_value(cdt,cdn,\"item_name\",r.item_name)\n\t          frappe.model.set_value(cdt,cdn,\"rate\",r.valuation_rate)\n\t          frappe.model.set_value(cdt,cdn,\"uom\",r.stock_uom)\n\t      })\n\t  }\n\t},\n\t\n\tqty(frm,cdt,cdn){\n\t    let row = locals[cdt][cdn]\n\t    frappe.model.set_value(cdt,cdn,\"amount\",(row.qty*row.rate)||0)    \n\t},\n\t\n\trate(frm,cdt,cdn){\n\t    let row = locals[cdt][cdn]\n\t    frappe.model.set_value(cdt,cdn,\"amount\",(row.qty*row.rate)||0)    \n\t},\n\tamount(frm,cdt,cdn){\n\t    frm.trigger(\"calculate_amount\")\n\t},\n\t\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Purchase Request",
+  "enabled": 1,
+  "modified": "2026-04-10 14:42:59.273938",
+  "module": null,
+  "name": "Purchase Request Script",
+  "script": "frappe.ui.form.on('Purchase Request', {\n\trefresh(frm) {\n\t\t// your code here\n\t\tconsole.log(frappe.user.has_roles())\n\t\tif(frappe.user.has_role('Purchase Manager') && frm.doc.status ==='Pending'){\n\t\t    frm.add_custom_button(\"Approve\",function(){\n\t\t        frappe.call({\n\t\t            method:'my_app.my_app.doctype.purchase_request.purchase_request.approve_purchase_request',\n\t\t            args:{\n\t\t                'docname' : frm.doc.name\n\t\t            },\n\t\t            callback:function(r){\n\t\t                console.log(r)\n\t\t              //  frm.reload_doc()\n\t\t              //  //show_alert with indicator\n                //         frappe.show_alert({\n                //             message:__('Doc Approved'),\n                //             indicator:'green'\n                //         }, 5);\n\t\t            }\n\t\t        })\n\t\t    },\"Actions\")\n\t\t    \n\t\t    frm.add_custom_button(\"Reject\",function(){\n\t\t        frappe.prompt(\n\t\t            [{label:'Reason',fieldname:'reason',fieldtype:\"Data\",reqd:1}],\n\t\t            function(r){\n\t\t                frappe.call({\n        \t\t            method:'my_app.my_app.doctype.purchase_request.purchase_request.reject_purchase_request',\n        \t\t            args:{\n        \t\t                'docname' : frm.doc.name,\n        \t\t                'reason':r.reason,\n        \t\t            },\n        \t\t            callback:function(r){\n        \t\t                frm.reload_doc()\n        \t\t                //show_alert with indicator\n                                frappe.show_alert({\n                                    message:__('Doc Rejected'),\n                                    indicator:'red'\n                                }, 5);\n        \t\t            }\n        \t\t        })\n\t\t            }\n\t\t        )\n\t\t    },\"Actions\")\n\t\t}\n\t}\n})",
+  "view": "Form"
+ },
+ {
+  "docstatus": 0,
+  "doctype": "Client Script",
+  "dt": "Customer Feedback",
+  "enabled": 1,
+  "modified": "2026-04-09 19:45:24.830792",
+  "module": null,
+  "name": "Custom Button on List View",
+  "script": "frappe.listview_settings[\"Customer Feedback\"] = {\n    refresh: function(listview) {\n        listview.page.add_action_item(__(\"Run Auto-Review\"), function() {\n            console.log(\"Button clicked\");\n            frappe.confirm(\"This will review\", ()=>{\n                frappe.call({\n                    \"method\" : \"my_app.my_app.api.run_auto_review\",\n                    callback:function(response){\n                        console.log(response.message)\n                    }\n                })\n            })\n        });\n    }\n};",
+  "view": "List"
+ }
+]

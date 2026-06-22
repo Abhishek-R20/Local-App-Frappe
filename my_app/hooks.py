@@ -251,9 +251,46 @@ override_whitelisted_methods = {
 
 
 fixtures = [
+    # Core customization
     "Custom Field",
+    "Property Setter",
+    "Customize Form",
+
+    # Security & access
+    "Role",
+    "Role Profile",
+    "User Permission",
+    "Custom DocPerm",
+
+    # Workflow / automation
     "Workflow",
-    "Role" ,
+    "Workflow State",
+    "Workflow Action Master",
+
+    # Scripts
     "Server Script",
-    "Client Script"
+    "Client Script",
+
+    # Print / UI customization
+    "Print Format",
+    "Print Style",
+    "Letter Head",
+    "Print Heading",
+
+    # Notifications / communication
+    "Notification",
+    "Email Template",
+
+    # Reports
+    "Report",
+    "Report Column",
+    "Report Filter",
+
+    # Naming / system behavior
+    "Naming Series",
+    "Number Card",
+
+    # Optional but often useful
+    "Dashboard Chart",
+    "Workspace",
 ]
